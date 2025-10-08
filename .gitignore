@@ -1,0 +1,11 @@
+# Hardware configs
+com.corsair/
+
+# Editors
+.idea/
+.vscode/
+
+# Backups
+nvim.bak/
+
+
