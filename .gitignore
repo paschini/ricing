@@ -8,4 +8,7 @@ com.corsair/
 # Backups
 nvim.bak/
 
+# Stuff I dont need in this repo
+go/
 
+lazy-lock.json
