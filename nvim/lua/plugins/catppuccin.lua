@@ -15,6 +15,9 @@ return {
           nvimtree = true,
           cmp = true,
           gitsigns = true,
+          lsp_trouble = true,
+          markview = true,
+          render_markdown = true,
         },
       })
       vim.cmd.colorscheme("catppuccin")
