@@ -1,0 +1,17 @@
+# Ignore everything by default
+*
+
+# Explicitly allow what we want to track
+!.gitignore
+!ghostty/
+!ghostty/**
+!nvim/
+!nvim/**
+!fish/
+!fish/**
+!starship.toml
+!bash-starship.toml
+!hypr/
+!hypr/**
+!noctalia/
+!noctalia/**
