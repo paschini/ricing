@@ -602,7 +602,7 @@ do
           end
           if vim.o.lines >= 60 then return { header = jankspire_unicorn_ascii, padding = 2 } end
           -- Not enough room for the full unicorn — keep the menu usable instead.
-          return { header = '🦄  jankspire', padding = 1 }
+          return { header = '🦄  Princess!', padding = 1 }
         end,
         { section = 'keys', gap = 1, padding = 1 },
         {
@@ -622,6 +622,13 @@ do
       },
     },
   }
+
+  -- The `Projects` list's folder names default-link `SnacksDashboardFile` to
+  -- `Special` (green, in Dracula) — set *after* `setup()` above since that's
+  -- what registers the default link in the first place, and a plain
+  -- (non-`default`) `nvim_set_hl` always wins over one. Pink to match the
+  -- rainbow unicorn's princess vibe.
+  vim.api.nvim_set_hl(0, 'SnacksDashboardFile', { fg = '#ff79c6' })
 
   -- [[ File explorer + buffer tabs ]]
   -- nvim-tree: the clickable file tree sidebar. bufferline: clickable tabs
