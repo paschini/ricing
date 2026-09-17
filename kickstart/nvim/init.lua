@@ -439,6 +439,7 @@ do
     spec = {
       { '<leader>s', group = '[S]earch', mode = { 'n', 'v' } },
       { '<leader>t', group = '[T]oggle' },
+      { '<leader>a', group = '[A]I / Claude', mode = { 'n', 'v' } },
       { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } }, -- Enable gitsigns recommended keymaps first
       { 'gr', group = 'LSP Actions', mode = { 'n' } },
     },
@@ -473,10 +474,31 @@ do
     return vim.tbl_filter(function(path) return vim.fn.isdirectory(path) == 1 end, entries)
   end
 
-  -- The favorite splash unicorn. It's 47 lines tall, which is great on a
-  -- big terminal but can crowd out the menu on a shorter one (see the
-  -- `vim.o.lines` check below).
-  local jankspire_unicorn = [[
+  -- Colorful pixel-art unicorn for the splash, generated from reference
+  -- images in the Obsidian ricing note (HomeLab/Ricing hard/Ricing my
+  -- Terminal and nVim) via `kickstart/nvim/tools/gen_unicorn_art.py` in the
+  -- ricing repo. Each row is a snacks.dashboard.Text[] of `▀`/`▄` half-block
+  -- chunks with a fg/bg pair sampled from two source pixels, giving roughly
+  -- 2x the vertical resolution a plain character grid would (highlight
+  -- groups have to be registered once before use, hence the loop below).
+  -- 28 rows tall, which is great on a big terminal but can crowd out the
+  -- menu on a shorter one (see the `vim.o.lines` check below).
+  --
+  -- Swap which picture is active by changing this one line: 'cozy' is the
+  -- pink-mane/rainbow-arc unicorn, 'rainbow' is the crowned rainbow-mane one.
+  local UNICORN_VARIANT = 'rainbow'
+  local unicorn_art = require('custom.unicorn_art_' .. UNICORN_VARIANT)
+  for _, hl in ipairs(unicorn_art.highlights) do
+    vim.api.nvim_set_hl(0, hl.name, { fg = hl.fg, bg = hl.bg })
+  end
+  local colored_unicorn_items = {}
+  for _, row in ipairs(unicorn_art.rows) do
+    table.insert(colored_unicorn_items, { text = row })
+  end
+
+  -- Old grayscale ASCII version, kept only as the fallback answer to "what
+  -- if truecolor isn't available" (checked below) — 47 lines tall.
+  local jankspire_unicorn_ascii = [[
                                                %@@%
                                                %++#
                                                %::=%     @@
@@ -569,7 +591,16 @@ do
       },
       sections = {
         function()
-          if vim.o.lines >= 60 then return { header = jankspire_unicorn, padding = 2 } end
+          -- Colored art is only 28 rows (vs. the ASCII version's 47), so it
+          -- fits comfortably where the old threshold was tuned for the
+          -- taller one. `termguicolors` gates it since the highlight groups
+          -- above are defined with hex colors only — no 256-color fallback.
+          if vim.o.termguicolors and vim.o.lines >= 40 then
+            local items = vim.deepcopy(colored_unicorn_items)
+            items.padding = 2
+            return items
+          end
+          if vim.o.lines >= 60 then return { header = jankspire_unicorn_ascii, padding = 2 } end
           -- Not enough room for the full unicorn — keep the menu usable instead.
           return { header = '🦄  jankspire', padding = 1 }
         end,
@@ -1423,7 +1454,7 @@ do
   -- NOTE: You can add your own plugins, configuration, etc. in `lua/custom/plugins/*.lua`.
   --
   -- For independent modules, uncomment the convenience loader:
-  -- require 'custom.plugins'
+  require 'custom.plugins'
   --
   -- `custom.plugins` automatically loads files from that directory, but their
   -- order is unspecified. If plugins depend on each other, keep them in the same
