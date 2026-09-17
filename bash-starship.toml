@@ -1,11 +1,11 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
 format = """
-[](red)\
+[](pink)\
 $os\
 $username\
 $hostname\
-[ ](red)\
+[ ](pink)\
 $all\
 [](fg:peach)\
 $directory\
@@ -36,7 +36,7 @@ palette = 'dracula'
 
 [os]
 disabled = false
-style = "bg:red fg:crust"
+style = "bg:pink fg:crust"
 
 [os.symbols]
 Windows = ""
@@ -61,14 +61,14 @@ RedHatEnterprise = "󱄛"
 
 [username]
 show_always = true
-style_user = "bg:red fg:crust"
-style_root = "bg:red fg:crust"
+style_user = "bg:pink fg:crust"
+style_root = "bg:pink fg:crust"
 format = '[ $user]($style)'
 
 [hostname]
 disabled = false
 ssh_only = false
-style = "bg:red fg:crust"
+style = "bg:pink fg:crust"
 format = '[$ssh_symbol$hostname]($style)'
 
 [directory]
@@ -181,6 +181,7 @@ min_time_to_notify = 45000
 # `sapphire` -> cyan and `lavender` -> purple are the closest fits, not a
 # 1:1 named match like the catppuccin flavors below.
 red = "#ff5555"
+pink = "#ff79c6"
 peach = "#ffb86c"
 yellow = "#f1fa8c"
 green = "#50fa7b"
