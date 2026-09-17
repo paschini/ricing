@@ -1078,6 +1078,13 @@ do
     html = {},
     emmet_language_server = {},
     ts_ls = {}, -- typescript-language-server: handles both JS and TS/TSX
+    eslint = {
+      -- Needed so the server resolves the project's own eslint config
+      -- relative to the file being linted, not the LSP root — matters
+      -- whenever the linted project isn't at the repo root (e.g. a
+      -- frontend nested a few directories deep in a monorepo).
+      settings = { workingDirectory = { mode = 'auto' } },
+    },
     -- gopls = {},
     -- pyright = {},
     -- tsc = {},
@@ -1148,6 +1155,14 @@ do
   local ensure_installed = vim.tbl_keys(servers or {})
   vim.list_extend(ensure_installed, {
     -- You can add other tools here that you want Mason to install
+    --
+    -- roslyn.nvim (below) doesn't go through the `servers` table/lsp.enable
+    -- loop, and its own health check always reports "found" even when
+    -- nothing's actually installed (it falls back to a literal string, not
+    -- nil, when it can't find a real binary — confirmed from source). So
+    -- it needs to be ensure_installed explicitly here, or a fresh machine
+    -- silently gets a dead C# LSP with a checkhealth that lies about it.
+    'roslyn-language-server',
   })
 
   require('mason-tool-installer').setup { ensure_installed = ensure_installed }
@@ -1182,6 +1197,12 @@ do
       local enabled_filetypes = {
         -- lua = true,
         -- python = true,
+        -- Prettier on save. Deliberately NOT wired to eslint's fix-on-save —
+        -- this only runs the formatter, eslint diagnostics stay manual-fix.
+        javascript = true,
+        typescript = true,
+        javascriptreact = true,
+        typescriptreact = true,
       }
       if enabled_filetypes[vim.bo[bufnr].filetype] then
         return { timeout_ms = 500 }
@@ -1199,11 +1220,35 @@ do
       -- python = { "isort", "black" },
       --
       -- You can use 'stop_after_first' to run the first available formatter from the list
-      -- javascript = { "prettierd", "prettier", stop_after_first = true },
+      javascript = { 'prettierd', 'prettier', stop_after_first = true },
+      typescript = { 'prettierd', 'prettier', stop_after_first = true },
+      javascriptreact = { 'prettierd', 'prettier', stop_after_first = true },
+      typescriptreact = { 'prettierd', 'prettier', stop_after_first = true },
     },
   }
 
   vim.keymap.set({ 'n', 'v' }, '<leader>f', function() require('conform').format { async = true } end, { desc = '[F]ormat buffer' })
+
+  -- Format on paste, scoped to the same prettier-formatted filetypes as
+  -- format-on-save above. conform has no dedicated "on paste" event, so
+  -- this remaps p/P to paste then format just the pasted range, using the
+  -- '[/'] marks Vim sets to the bounds of the last change after any edit.
+  vim.api.nvim_create_autocmd('FileType', {
+    pattern = { 'javascript', 'typescript', 'javascriptreact', 'typescriptreact' },
+    desc = 'Format the pasted region after p/P',
+    callback = function(ev)
+      local function paste_and_format(keys)
+        return function()
+          vim.cmd('normal! ' .. keys)
+          require('conform').format {
+            range = { start = vim.api.nvim_buf_get_mark(0, '['), ['end'] = vim.api.nvim_buf_get_mark(0, ']') },
+          }
+        end
+      end
+      vim.keymap.set('n', 'p', paste_and_format 'p', { buffer = ev.buf, desc = 'Paste and format' })
+      vim.keymap.set('n', 'P', paste_and_format 'P', { buffer = ev.buf, desc = 'Paste and format' })
+    end,
+  })
 end
 
 -- ============================================================
